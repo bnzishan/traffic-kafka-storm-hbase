@@ -46,4 +46,8 @@
         <name>hbase.zookeeper.quorum</name>
         <value>zookeeper1,zookeeper2,zookeeper3</value>
     </property>
+    <property skipInDoc="true">
+        <name>hbase.defaults.for.version</name>
+        <value>1.1.3</value>
+    </property>
 </configuration>
