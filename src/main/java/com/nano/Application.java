@@ -3,22 +3,14 @@ package com.nano;
 import backtype.storm.Config;
 import backtype.storm.LocalCluster;
 import backtype.storm.StormSubmitter;
-import backtype.storm.generated.AlreadyAliveException;
-import backtype.storm.generated.AuthorizationException;
-import backtype.storm.generated.InvalidTopologyException;
 import backtype.storm.spout.SchemeAsMultiScheme;
 import backtype.storm.topology.TopologyBuilder;
 import backtype.storm.tuple.Fields;
 import com.nano.bolts.HBaseBolt;
 import com.nano.bolts.MessageSplitBolt;
 import com.nano.bolts.ProcessingBolt;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.client.Connection;
-import org.apache.hadoop.hbase.client.ConnectionFactory;
 import storm.kafka.*;
 
-import java.io.IOException;
 import java.util.Arrays;
 
 /**
@@ -38,9 +30,8 @@ public class Application {
         spoutConf.zkServers = Arrays.asList(new String[] {"zookeeper1", "zookeeper2", "zookeeper3"});
         spoutConf.zkPort = 2181;
 
-
         TopologyBuilder builder = new TopologyBuilder();
-        builder.setSpout("reader",new KafkaSpout(spoutConf), 15);
+        builder.setSpout("reader",new KafkaSpout(spoutConf),15);
         builder.setBolt("splitter",new MessageSplitBolt(),15).shuffleGrouping("reader");
         builder.setBolt("processor",new ProcessingBolt(),15).fieldsGrouping("splitter",new Fields("area")); // 相同区域交由同一个bolt处理
         builder.setBolt("writer",new HBaseBolt(),15).fieldsGrouping("processor",new Fields("row")); // 相同key交由同一个bolt处理
@@ -50,7 +41,7 @@ public class Application {
         if (args != null && args.length > 0) {
             // Nimbus host name passed from command line
             conf.put(Config.NIMBUS_HOST, args[0]);
-            conf.setNumWorkers(3);
+            conf.setNumWorkers(100);
             StormSubmitter.submitTopologyWithProgressBar(name, conf, builder.createTopology());
         } else {
             System.setProperty("hadoop.home.dir", "D:/hadoop");
