@@ -15,7 +15,8 @@ import java.util.List;
  */
 public class BloomFilter {
 
-    private static final int DEFAULT_SIZE = 2 << 29;
+//    private static final int DEFAULT_SIZE = 2 << 29;
+    private static final int DEFAULT_SIZE = 2 << 25;
     private static final int[] seeds = new int[]{5, 7, 11, 13, 31, 37, 61};
     private BitSet bits = new BitSet(DEFAULT_SIZE);
     private SimpleHash[] func = new SimpleHash[seeds.length];

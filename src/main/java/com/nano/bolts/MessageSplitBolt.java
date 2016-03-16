@@ -15,6 +15,7 @@ import redis.clients.jedis.JedisPoolConfig;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Created by Administrator on 2016/3/11.
@@ -36,7 +37,7 @@ public class MessageSplitBolt extends BaseRichBolt {
         config.setMaxWaitMillis(1000l);
         config.setTestOnBorrow(false);
 
-        jedisPool = new JedisPool(config,"redis",6379);
+        jedisPool = new JedisPool(config, "redis", 6379);
 
         jedis = jedisPool.getResource();
 
@@ -49,18 +50,18 @@ public class MessageSplitBolt extends BaseRichBolt {
         String msg = input.getString(0);
         try {
             Map<String, Object> info = objectMapper.readValue(msg, Map.class);
-            String area = info.get("area").toString();
-            double speed = (double) info.get("speed");
-            String uuid = null;
-            try {
-               uuid = info.get("uuid").toString();
+            String area = info.get("area") == null ? "default" : info.get("area").toString();
+            double speed = 0.00d;
+            try{
+                speed = (double) info.get("speed");
             }catch(Exception e) {
                 e.printStackTrace();
             }
+            String uuid = info.get("uuid") == null ? UUID.randomUUID().toString() : info.get("uuid").toString();
             String key = "splitter-" + uuid;
-            if(!bloomFilter.contains(key)) {
+            if (!bloomFilter.contains(key)) {
                 bloomFilter.add(key);
-                outputCollector.emit(input, new Values(area, speed,uuid));
+                outputCollector.emit(input, new Values(area, speed, uuid));
             }
 //            if(!jedis.exists(key)){
 //                jedis.incr(key);

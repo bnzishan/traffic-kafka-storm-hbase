@@ -9,9 +9,6 @@ import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 import com.nano.utils.BloomFilter;
 import org.apache.storm.shade.com.google.common.util.concurrent.AtomicDouble;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.JedisPoolConfig;
 
 import java.util.Calendar;
 import java.util.HashMap;
@@ -25,8 +22,8 @@ public class ProcessingBolt extends BaseRichBolt {
     private OutputCollector outputCollector;
     private Map<String, AtomicLong> countMap;
     private Map<String, AtomicDouble> speedMap;
-    private Jedis jedis;//非切片额客户端连接
-    private JedisPool jedisPool;//非切片连接池
+//    private Jedis jedis;//非切片额客户端连接
+//    private JedisPool jedisPool;//非切片连接池
     private BloomFilter bloomFilter;
 
     @Override
@@ -36,15 +33,15 @@ public class ProcessingBolt extends BaseRichBolt {
         speedMap = new HashMap<>();
 
         // 池基本配置
-        JedisPoolConfig config = new JedisPoolConfig();
-        config.setMaxTotal(20);
-        config.setMaxIdle(5);
-        config.setMaxWaitMillis(1000l);
-        config.setTestOnBorrow(false);
-
-        jedisPool = new JedisPool(config, "redis", 6379);
-
-        jedis = jedisPool.getResource();
+//        JedisPoolConfig config = new JedisPoolConfig();
+//        config.setMaxTotal(20);
+//        config.setMaxIdle(5);
+//        config.setMaxWaitMillis(1000l);
+//        config.setTestOnBorrow(false);
+//
+//        jedisPool = new JedisPool(config, "redis", 6379);
+//
+//        jedis = jedisPool.getResource();
 
         bloomFilter = new BloomFilter();
     }
@@ -109,7 +106,7 @@ public class ProcessingBolt extends BaseRichBolt {
 //            outputCollector.emit(input, new Values(row, area, year, month, date, hour, minute, count.get(), speedAvg.get(), uuid));
 //        }
         outputCollector.ack(input);
-        System.out.println(countMap);
+//        System.out.println(countMap);
 
 
     }
