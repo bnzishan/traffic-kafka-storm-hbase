@@ -10,16 +10,17 @@ import com.nano.utils.BloomFilter;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.TableName;
-import org.apache.hadoop.hbase.client.Admin;
-import org.apache.hadoop.hbase.client.Connection;
-import org.apache.hadoop.hbase.client.ConnectionFactory;
-import org.apache.hadoop.hbase.client.Put;
+import org.apache.hadoop.hbase.client.*;
+import org.apache.hadoop.hbase.filter.Filter;
+import org.apache.hadoop.hbase.filter.FilterList;
+import org.apache.hadoop.hbase.filter.SingleColumnValueFilter;
 import org.apache.hadoop.hbase.util.Bytes;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.Map;
 
 /**
@@ -28,8 +29,6 @@ import java.util.Map;
 public class HBaseBolt extends BaseRichBolt {
     private OutputCollector outputCollector;
     private Connection connection;
-    private Jedis jedis;//非切片额客户端连接
-    private JedisPool jedisPool;//非切片连接池
     private BloomFilter bloomFilter;
 
     @Override
@@ -41,17 +40,6 @@ public class HBaseBolt extends BaseRichBolt {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        // 池基本配置
-        JedisPoolConfig config = new JedisPoolConfig();
-        config.setMaxTotal(20);
-        config.setMaxIdle(5);
-        config.setMaxWaitMillis(1000l);
-        config.setTestOnBorrow(false);
-
-        jedisPool = new JedisPool(config, "redis", 6379);
-
-        jedis = jedisPool.getResource();
 
         bloomFilter = new BloomFilter();
     }
@@ -71,7 +59,7 @@ public class HBaseBolt extends BaseRichBolt {
 
         String key = "hbase-" + uuid;
 
-        if(!bloomFilter.contains(key)) {
+        if (!bloomFilter.contains(key)) {
             bloomFilter.add(key);
             try {
                 Admin admin = connection.getAdmin();
@@ -86,33 +74,22 @@ public class HBaseBolt extends BaseRichBolt {
                     put.addColumn(Bytes.toBytes("info"), Bytes.toBytes("minute"), Bytes.toBytes(minute));
                     put.addColumn(Bytes.toBytes("info"), Bytes.toBytes("count"), Bytes.toBytes(count));
                     put.addColumn(Bytes.toBytes("info"), Bytes.toBytes("speed"), Bytes.toBytes(speed));
+                    Get get = new Get(Bytes.toBytes(row));
+                    get.addColumn(Bytes.toBytes("info"), Bytes.toBytes("created"));
+                    Result result = connection.getTable(tableName).get(get);
+                    if (result.isEmpty()) {
+                        put.addColumn(Bytes.toBytes("info"), Bytes.toBytes("created"), Bytes.toBytes(new Date().getTime()));
+                        put.addColumn(Bytes.toBytes("info"), Bytes.toBytes("modified"), Bytes.toBytes(new Date().getTime()));
+                    } else {
+                        put.addColumn(Bytes.toBytes("info"), Bytes.toBytes("created"), result.getValue(Bytes.toBytes("info"), Bytes.toBytes("created")));
+                        put.addColumn(Bytes.toBytes("info"), Bytes.toBytes("modified"), Bytes.toBytes(new Date().getTime()));
+                    }
                     admin.getConnection().getTable(tableName).put(put);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-//        if(!jedis.exists(key)){
-//            jedis.incr(key);
-//            try {
-//                Admin admin = connection.getAdmin();
-//                TableName tableName = TableName.valueOf("traffic");
-//                if (admin.tableExists(tableName)) {
-//                    Put put = new Put(Bytes.toBytes(row));
-//                    put.addColumn(Bytes.toBytes("info"), Bytes.toBytes("area"), Bytes.toBytes(area));
-//                    put.addColumn(Bytes.toBytes("info"), Bytes.toBytes("year"), Bytes.toBytes(year));
-//                    put.addColumn(Bytes.toBytes("info"), Bytes.toBytes("month"), Bytes.toBytes(month));
-//                    put.addColumn(Bytes.toBytes("info"), Bytes.toBytes("date"), Bytes.toBytes(date));
-//                    put.addColumn(Bytes.toBytes("info"), Bytes.toBytes("hour"), Bytes.toBytes(hour));
-//                    put.addColumn(Bytes.toBytes("info"), Bytes.toBytes("minute"), Bytes.toBytes(minute));
-//                    put.addColumn(Bytes.toBytes("info"), Bytes.toBytes("count"), Bytes.toBytes(count));
-//                    put.addColumn(Bytes.toBytes("info"), Bytes.toBytes("speed"), Bytes.toBytes(speed));
-//                    admin.getConnection().getTable(tableName).put(put);
-//                }
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        }
 
         outputCollector.ack(input);
     }

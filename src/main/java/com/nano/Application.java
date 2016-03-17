@@ -6,11 +6,10 @@ import backtype.storm.StormSubmitter;
 import backtype.storm.spout.SchemeAsMultiScheme;
 import backtype.storm.topology.TopologyBuilder;
 import backtype.storm.tuple.Fields;
+import com.nano.bolts.HBaseBolt;
 import com.nano.bolts.MessageSplitBolt;
-import com.nano.bolts.MySqlBolt;
 import com.nano.bolts.ProcessingBolt;
 import storm.kafka.*;
-import storm.trident.topology.TridentTopologyBuilder;
 
 import java.util.Arrays;
 
@@ -32,13 +31,12 @@ public class Application {
         spoutConf.zkPort = 2181;
 
         TopologyBuilder builder = new TopologyBuilder();
-        builder.setSpout("reader", new KafkaSpout(spoutConf), 4).setNumTasks(10);
+        builder.setSpout("reader", new KafkaSpout(spoutConf), 8).setNumTasks(20);
         builder.setBolt("splitter", new MessageSplitBolt(), 4).shuffleGrouping("reader").setNumTasks(10);
         builder.setBolt("processor", new ProcessingBolt(), 4).fieldsGrouping("splitter", new Fields("area")).setNumTasks(10); // 相同区域交由同一个bolt处理
-//        builder.setBolt("writer",new HBaseBolt(),4).fieldsGrouping("processor",new Fields("row")).setNumTasks(16); // 相同key交由同一个bolt处理
-
-
-        builder.setBolt("writer", new MySqlBolt(), 4).fieldsGrouping("processor", new Fields("row")).setNumTasks(10); // 相同key交由同一个bolt处理
+        builder.setBolt("writer",new HBaseBolt(),12).fieldsGrouping("processor",new Fields("row")).setNumTasks(20); // 相同key交由同一个bolt处理
+//        builder.setBolt("writer", new RedisBolt(), 8).fieldsGrouping("processor", new Fields("row")).setNumTasks(20); // 相同key交由同一个bolt处理
+//        builder.setBolt("writer", new MySqlBolt(), 8).fieldsGrouping("processor", new Fields("row")).setNumTasks(20); // 相同key交由同一个bolt处理
 
         Config conf = new Config();
         String name = Application.class.getSimpleName();

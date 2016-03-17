@@ -5,17 +5,12 @@ import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.base.BaseRichBolt;
 import backtype.storm.tuple.Tuple;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.nano.utils.BloomFilter;
-import org.apache.storm.jdbc.common.Column;
 import org.apache.storm.jdbc.common.ConnectionProvider;
 import org.apache.storm.jdbc.common.HikariCPConnectionProvider;
 import org.apache.storm.jdbc.common.JdbcClient;
 
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 /**
