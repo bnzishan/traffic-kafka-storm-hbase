@@ -5,11 +5,14 @@ import backtype.storm.LocalCluster;
 import backtype.storm.StormSubmitter;
 import backtype.storm.spout.SchemeAsMultiScheme;
 import backtype.storm.topology.TopologyBuilder;
+import backtype.storm.transactional.TransactionalTopologyBuilder;
 import backtype.storm.tuple.Fields;
 import com.nano.bolts.HBaseBolt;
 import com.nano.bolts.MessageSplitBolt;
 import com.nano.bolts.ProcessingBolt;
 import storm.kafka.*;
+import storm.trident.TridentState;
+import storm.trident.TridentTopology;
 
 import java.util.Arrays;
 
@@ -52,7 +55,7 @@ public class Application {
             System.setProperty("hadoop.home.dir", "D:/hadoop");
             conf.setMaxTaskParallelism(3);
             LocalCluster cluster = new LocalCluster();
-            cluster.submitTopology(Application.class.getSimpleName(), conf, builder.createTopology());
+            cluster.submitTopology(name, conf, builder.createTopology());
         }
     }
 }
