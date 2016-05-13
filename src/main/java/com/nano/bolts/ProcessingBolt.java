@@ -8,7 +8,6 @@ import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 import com.nano.utils.BloomFilter;
-import org.apache.storm.guava.util.concurrent.AtomicDouble;
 
 import java.util.Calendar;
 import java.util.HashMap;
@@ -21,7 +20,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class ProcessingBolt extends BaseRichBolt {
     private OutputCollector outputCollector;
     private Map<String, AtomicLong> countMap;
-    private Map<String, AtomicDouble> speedMap;
+    private Map<String, Double> speedMap;
     private BloomFilter bloomFilter;
 
     @Override
@@ -57,14 +56,16 @@ public class ProcessingBolt extends BaseRichBolt {
                 this.countMap.put(row, count);
             }
 
-            AtomicDouble speedAvg = this.speedMap.get(row);
+            Double speedAvg = this.speedMap.get(row);
             if (speedAvg == null) {
-                speedAvg = new AtomicDouble();
+                speedAvg = 0.00D;
                 this.speedMap.put(row, speedAvg);
             }
-            speedAvg.set((count.get() * speedAvg.get() + speed) / (count.get() + 1));
+            speedAvg = (count.get() * speedAvg + speed) / (count.get() + 1);
+//            speedAvg.set((count.get() * speedAvg.get() + speed) / (count.get() + 1));
             count.addAndGet(1);
-            outputCollector.emit(input, new Values(row, area, year, month, date, hour, minute, count.get(), speedAvg.get(), uuid));
+//            outputCollector.emit(input, new Values(row, area, year, month, date, hour, minute, count.get(), speedAvg.get(), uuid));
+            outputCollector.emit(input, new Values(row, area, year, month, date, hour, minute, count.get(), speedAvg, uuid));
         }
         outputCollector.ack(input);
 

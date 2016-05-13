@@ -44,7 +44,7 @@
     <!--不使用默认内置的，配置独立的ZK集群地址-->
     <property>
         <name>hbase.zookeeper.quorum</name>
-        <value>zookeeper1,zookeeper2,zookeeper3</value>
+        <value>zookeeper01,zookeeper02,zookeeper03</value>
     </property>
     <property skipInDoc="true">
         <name>hbase.defaults.for.version</name>

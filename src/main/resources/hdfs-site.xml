@@ -39,7 +39,7 @@
     <!-- 指定NameNode的元数据在JournalNode上的存放位置 -->
     <property>
         <name>dfs.namenode.shared.edits.dir</name>
-        <value>qjournal://slave01:8485;slave02:8485;slave03:8485;slave04:8485;slave05:8485;slave06:8485/hbi</value>
+        <value>qjournal://slave01:8485;slave02:8485;slave03:8485;/hbi</value>
     </property>
     <!-- 指定JournalNode在本地磁盘存放数据的位置 -->
     <property>

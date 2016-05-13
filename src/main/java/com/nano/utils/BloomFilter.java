@@ -1,14 +1,9 @@
 package com.nano.utils;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.List;
 
 /**
  * Created by Administrator on 2016/3/8.
